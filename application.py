@@ -1,5 +1,6 @@
+# application.py
 """
-This script runs the FlaskWebProject application using a development server.
+Run the FlaskWebProject application.
 """
 
 from os import environ
@@ -11,4 +12,11 @@ if __name__ == '__main__':
         PORT = int(environ.get('SERVER_PORT', '5555'))
     except ValueError:
         PORT = 5555
-    app.run(HOST, PORT, ssl_context='adhoc')
+
+    # Use HTTPS locally only; Azure App Service handles SSL automatically
+    use_ssl = environ.get('USE_ADHOC_SSL', 'false').lower() in ('true', '1', 'yes')
+
+    if use_ssl:
+        app.run(host=HOST, port=PORT, ssl_context='adhoc')
+    else:
+        app.run(host=HOST, port=PORT)
