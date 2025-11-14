@@ -36,7 +36,7 @@ def new_post():
     if form.validate_on_submit():
         post = Post()
         post.save_changes(form, request.files['image_path'], current_user.id, new=True)
-        app.logger.info("User %s has published a new post", current_user.username)
+        app.logger.info("New post created by user: %s", current_user.username)
         return redirect(url_for('home'))
     return render_template(
         'post.html',
@@ -53,7 +53,7 @@ def post(id):
     form = PostForm(formdata=request.form, obj=post)
     if form.validate_on_submit():
         post.save_changes(form, request.files['image_path'], current_user.id)
-        app.logger.info("User %s updated post with ID %s", id, current_user.username)
+        app.logger.info("Post with ID %s updated by user: %s", id, current_user.username)
         return redirect(url_for('home'))
     return render_template(
         'post.html',
@@ -70,11 +70,11 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
-            app.logger.warning("Authentication failed for username %s", form.username.data)
+            app.logger.warning("Invalid login attempt for username: %s", form.username.data)
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
-        app.logger.info("Login success: %s used local authentication.", form.username.data)
+        app.logger.info("User %s logged in successfully via local login.", form.username.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
@@ -86,10 +86,10 @@ def login():
 @app.route(Config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized():
     if request.args.get('state') != session.get("state"):
-        app.logger.warning("Authentication failed: state mismatch in Microsoft login.")
+        app.logger.warning("State mismatch during Microsoft login.")
         return redirect(url_for("home"))  # No-OP. Goes back to Index page
     if "error" in request.args:  # Authentication/Authorization failure
-        app.logger.error("login error in Microsoft: %s", request.args.get("error_description"))
+        app.logger.error("Microsoft login error: %s", request.args.get("error_description"))
         return render_template("auth_error.html", result=request.args)
     if request.args.get('code'):
         cache = _load_cache()
@@ -100,7 +100,7 @@ def authorized():
             redirect_uri=url_for('authorized', _external=True, _scheme='https'))
         
         if "error" in result:
-            app.logger.error("MSAL authentication failed with error: %s", result.get("error_description"))
+            app.logger.error("MSAL token acquisition error: %s", result.get("error_description"))
             return render_template("auth_error.html", result=result)
         session["user"] = result.get("id_token_claims")
         # Note: In a real app, we'd use the 'name' property from session["user"] below
@@ -112,7 +112,7 @@ def authorized():
 
 @app.route('/logout')
 def logout():
-    app.logger.info("User %s has logged off.", getattr(current_user, 'username', 'Unknown'))
+    app.logger.info("User %s logged out.", getattr(current_user, 'username', 'Unknown'))
     logout_user()
     if session.get("user"): # Used MS Login
         # Wipe out user and its token cache from session
