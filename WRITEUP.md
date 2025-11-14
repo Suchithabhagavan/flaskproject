@@ -15,3 +15,5 @@ Based on these comparisons, I choose Azure App Service for deploying my CMS app 
 *Detail how the app and any other needs would have to change for you to change your decision in the last section.* 
 
 To switch from an Azure App Service to a VM, my Flask application would need major changes. I would have to manage the OS, install and configure Python, Flask, and all dependencies manually, and handle updates, security patches, and scaling on my own. I would also need to create and maintain a full Docker setup or custom deployment pipeline, and configure networking, firewalls, and monitoring from scratch. Only if my project required complete control over the environment, custom background services, or very heavy processing tasks would moving to a VM make sense. Otherwise, App Service remains the simplest, most efficient choice for my project.
+**Deployed Application URL:**  
+ [https://projectweb-h3b3h2gacnfkc2gt.southindia-01.azurewebsites.net](url)
